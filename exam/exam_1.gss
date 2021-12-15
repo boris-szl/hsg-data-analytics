@@ -1,0 +1,88 @@
+new;
+cls;
+
+// TASK 1
+// we assign string name of the file to a variable
+file = "DadesPAU.dat";
+
+// open data via dataopen(...)
+// return value of dataopen is a scalar
+fh = dataopen(file,"read");
+
+// get number of columns and rows for filehandle
+ncol = colsf(fh);
+nrow = rowsf(fh);
+ncol;; nrow;
+
+// using loadd
+// we load data and assign the return value of the function load(...) to X
+// return value is a MxN matrix
+X = loadd(file);
+
+// we define a variable headers and assign the column names of the dataset
+headers = getHeaders(file);
+
+// print headers and the first three rows
+print headers;
+print X[1:3,.];
+
+dat_IQ = loadd(file,"IQ");
+dat_HStudied = loadd(file,"HStudied");
+dat_QualityHS = loadd(file,"QualityHS");
+dat_Grade = loadd(file,"Grade");
+
+print dat_IQ[1:3,.];
+print dat_HStudied[1:3,.];
+
+// descriptive statistics
+vars = 0;
+{ vnam, mean, var, std, min, max, valid, mis } = dstat(file, vars);
+
+// median
+m = median(X); // we pass X as an argument because re
+m;
+
+// primitive way of doing this (I am sorry)
+print "Median";
+print "IQ" "\t" m[1,1];
+print "HStudied" m[3,1];
+print "Quality" "\t" m[3,1];
+print "Grade\t" m[4,1];
+
+// TASK 2
+// Prerequisites: sorted list
+// sort in gauss
+
+// define procedure with median as output
+// inputs are (matrix), where matrix is is col of dataset
+// code below
+
+
+// testing and comparions with output above
+
+
+// TASK 3
+// OLS
+// endogenous variable := Grade
+// exogenous variables := IQ, HStudied, Quality,
+dep = "Grade";
+string indep = {"IQ","HStudied","QualityHS"};
+
+// Specify the formula, 'Limit' is dependent variable
+// and 'Balance', 'Income' and 'Age' are independent
+// variables, '-1' means remove the intercept in the model
+formula = "Grade ~ - 1 + IQ + HStudied + QualityHS";
+
+// Call the OLS function
+call ols(file, dep, indep);
+call ols(file, formula);
+
+// TASK 4
+// point estimator
+
+
+
+
+end;
+
+
