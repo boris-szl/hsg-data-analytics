@@ -67,6 +67,7 @@ print "Grade\t" m[4,1];
 // exogenous variables := IQ, HStudied, Quality,
 dep = "Grade";
 string indep = {"IQ","HStudied","QualityHS"};
+"\n";
 
 // Specify the formula, 'Limit' is dependent variable
 // and 'Balance', 'Income' and 'Age' are independent
@@ -75,11 +76,15 @@ formula = "Grade ~ - 1 + IQ + HStudied + QualityHS";
 
 // Call the OLS function
 call ols(file, dep, indep);
+"\n";
 call ols(file, formula);
 
 // TASK 4
 // point estimator
 
+
+// FOR PYTHON .dat to .csv
+call saved(X, "DadesPAU.csv");
 
 
 
