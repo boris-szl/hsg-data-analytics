@@ -1,0 +1,56 @@
+new;
+cls;
+rndseed 1234;
+format /rd 16,4;
+
+// TASK 1
+file = "CardKrueger.csv";
+
+// oppen data via dataopen(...) 
+// returns s (string array) – data read from the CSV file.
+csv_file_1 = csvReadSA(file);
+
+// using loadd(...) function 
+// Returns y (NxK matrix) – of data.
+csv_file_matrix = loadd(file);
+// we declare a variable name A for the matrix
+X = csv_file_matrix;
+
+// descriptive statistics
+call  dstatmt(file);
+
+// get file headers
+headers = getHeaders(file);
+
+// TASK 2
+X[1:3,.]; // print first three rows of the matrix
+// get wage column
+dat_wage = loadd(file,"Wage");
+// check if done right, by loading first three rows
+dat_wage[1:3];
+// get size of the column
+rows(dat_wage);
+
+// we solve this by wirting a procedure
+proc(1) = delta(column_data);
+    local delta, c, len;
+    c = column_data;
+    len = rows(c);
+    delta = ( c[len]/c[1] ) - 1 ;
+    retp(delta);
+endp;
+
+// result
+format /rd 4,4;
+print "Wage from 1992 to 1993 has risen by % " delta(dat_wage)*100;
+
+// TASK 3
+
+// get first entry
+// get last entry
+
+
+
+
+
+end;
