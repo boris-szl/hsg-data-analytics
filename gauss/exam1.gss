@@ -1,0 +1,16 @@
+new; 
+rndseed 1234;
+
+
+// Load dataset
+// We use the filehandle to access the data
+Fin = dataopen("DadesPAU.dat", "read");
+
+src = "/exam/DadePAU.dat";
+
+// Dataloop section
+dataloop ^src dest;
+  make newvar = x1 + x2 + log(x3);
+  x6 = sqrt(x4);
+  keep x6, x5, newvar;
+endata;

@@ -1,0 +1,19 @@
+
+new;
+
+N = 20000; // Grundgesamtheit
+R = 1000; // Bootstraping ist ein Resamplingverfahren z.B. Monte-Carlo
+
+// Parameter
+
+// Definition der Koeffizienten
+true_beta = ones(4,1); // true coefficients
+true_delta = -0.5;
+
+// Variances of unobservables
+sigma2_u = 1; // true variance of errors
+sigma2_mu = 1; // true variance of in first stage of x4 on x3
+
+// Covariates (independent variables)
+dummy_p = 0.8; // probability for dummy variable = 1
+mean_x = ones(2,1); // means of normally distributed covariates

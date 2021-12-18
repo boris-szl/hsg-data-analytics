@@ -1,0 +1,213 @@
+@ IV and OLS estimation @
+new; rndseed 12398764; cls; starttime = date;	// programme initialized
+
+path_for_all = "Q:/SEW/Lechner/Veranstaltungen/HS20/Python and Gauss/Gauss/Programming_OLSIV";
+
+outputfile = "/OLS_IV.out";	// define output file to be used below
+
+N = 20000;			// sample size (large sample > 100000 needed to be able to measure the effect of loop vs. matrix)
+R = 1000;			// bootstrap replications
+
+//Specify parameters of DGP
+
+//Coefficients
+true_beta = ones(4,1);					// true coefficients
+true_delta = -0.5;
+//Variances of unobservables
+sigma2_u    = 1;						// true variance of error
+sigma2_mu   = 1;						// true variance of error in first stage of X4 on X3
+//Covariates (independent variables)
+dummy_p    = 0.8;                               // probability for dummy variable = 1
+mean_x 	   = ones(2,1);                         // means of normally distributed covariates
+sigma2_x    = eye(2);					        // true variance covariance matrix of normally distributed covariates
+sigma2_x[2,1] = 0.5;					        // covariance
+sigma2_x[1,2] = sigma2_x[2,1];                  // covariance matrices are symetric
+
+outputfile 	= path_for_all $+ outputfile;		// adds correct path for file
+output file	=^outputfile reset;					// overwrites old output file of same name
+"==============================================================================================";
+"                             OLS and IV estimation";
+"==============================================================================================";
+
+//Generate artifical data (DGP1 & 2)
+{y,x123,x4,y_name,x_name,z_name} = dgp_xy(N,true_beta,true_delta,dummy_p,sigma2_u,sigma2_mu,mean_x,sigma2_x); // generate the data
+
+//OLS estimation with matrices
+ols_start 		= date;                         //take the time 
+b_ols 			= my_ols_xy(y,x123,1);          //OLS estimator using matrices
+ols_end  		= date;                         //take the time
+
+//OLS estimation with loop
+ols_slow_start 	= date;                         //take the time
+B_slow 			= my_slow_ols_xy(y,x123,1); 	// using loops; only for demonstration purposes; need large enough N to see a difference
+ols_slow_end  	= date;	                        //take the time
+?;
+"Check - difference of estimated coefficients between the two methods. ";
+if sumc(b_ols-b_slow) > 1e-10;
+    "Estimators should be numerically identical, but they are not. Error in programme! Programme terminated.";
+    end;
+else;
+    "Both estimates are nummerically identical.";
+endif;  
+
+//Speed comparison between OLS and IV
+?; call show_time_diff(ols_start,ols_end,"ols with matrix",ols_slow_start,ols_slow_end,"ols with loop  ");
+
+//Estimate IV, use matrices only
+b_IV  = my_iv_xy(y,x123,x123[.,1 2]~x4,1); // last argument / parameter are the instruments variables
+
+//Estimate standard errors
+{b_ols_SE, b_ols_SE_boot} = bootstrap_ivols_std_xy(y,x123,0,             b_ols,r,"OLS",1); // r for the replications, last input is a constant term (same values as for const)
+{b_iv_SE,  b_iv_SE_boot}  = bootstrap_ivols_std_xy(y,x123,x123[.,1 2]~x4,b_IV, r,"IV" ,1);
+
+//Print results in useful format
+?;call estim_output(y_name,x_name,0,      b_ols,b_ols_SE,b_ols_SE_boot,N,R,"OLS",1);
+?;call estim_output(y_name,x_name,z_name, b_iv, b_iv_SE, b_IV_SE_boot, N,R,"IV" ,1);
+
+call programmdauer(starttime); 		    // Duration of programme
+end;										// End of programme
+
+// Below follow some procedures 
+
+proc(6)=dgp_xy(N,b,delta,dummy_p,sigma2_u,sigma2_mu,mean_x,sigma2_x);
+	local y,x,x4,u,mu,x_name,z_name;	
+	x 			= rndBernoulli(N,1,dummy_p) ~ rndMVn(N,mean_x,sigma2_x); //includes constant
+	u 			= rndn(N,1) * sqrt(sigma2_u);
+	mu			= rndn(N,1) * sqrt(sigma2_mu); 
+	y 			= (ones(N,1)~x)	* b + u;
+	x4 			= x[.,3] * delta + mu; 	
+    y_name      = "y";
+    x_name      = "x1" | "x2" | "x3";  
+    z_name      = "x4";
+    ?;
+    "Data generating process (DGP)";
+    "True coefficients (beta):  ";; format 5,3; b'; // 5 digits, precision 3
+    "True coefficients (delta): ";; format 5,3; delta';
+    "True E(X'U):               ";; format 5,3; meanc(x .* u)'; 
+    "Sample size:               ";; format 5,0; N;
+    retp(y,x,x4,y_name,x_name, z_name); // retp stands for return from procedure
+endp;
+
+proc(1)=my_ols_xy(y,x,const);
+	local b_est;
+    if const; // without "==" it checks whether it is true, true in binary is 1, so it checks if its 1
+        x = ones(rows(x),1) ~ x;    
+    endif;    	
+	b_est = invpd(x'x) * x'y;
+	retp(b_est);
+endp;
+
+proc(1)=my_slow_ols_xy(y,x,const);
+	local b_est,xTx,xTy,i; // T..for transposed, we need the primes of x
+	if const;
+        x = ones(rows(x),1) ~ x;
+    endif;    	
+	xTx = zeros(cols(x),cols(x)); // x prime x =  cols(x) * cols(x)
+    xTy = zeros(cols(x),1); // just cols(x) because we average all over the y's
+    //do summation over observations and columns in loops
+	for i(1,rows(x),1);
+        for j(1,cols(x),1);
+		    xTy[j] = xTy[j] + x[i,j] * y[i,1];
+            for jj(1,cols(x),1);
+               xTx[j,jj] = xTx[j,jj] + x[i,j] * x[i,jj];
+            endfor;    
+        endfor;    
+	endfor;
+	b_est = invpd(xTx) * xTy;    //use matrix operation, already slow enough ;-)
+	retp(b_est);
+endp;
+
+proc(1)=my_iv_xy(y,x,z,const);
+	local b;
+    if const;
+        x = ones(rows(x),1) ~ x;
+        z = ones(rows(x),1) ~ z;
+    endif;    
+	b = inv(z'x) * z'y;  //inv instead of invpd as z'x is not positive definite
+	retp(b);
+endp;
+
+proc(2)=bootstrap_ivols_std_xy(y,x,z,b_est,repl,method,const);
+	local b_SE,b_SE_boot,i,b,bb,indi,indi_i,N,xx,zz,sigma2_est,x_dach,b_CV;    
+    //Same procedure for OLS and IV as they are very simular
+    N = rows(x);
+    //Classical standard errors, homoscedasticity
+    if rows(b_est) > cols(x);
+        xx = ones(N,1)~x;
+        if method $== "IV";    
+            zz = ones(N,1)~z;
+        endif; 
+    else; //no constant term
+        xx = x;
+        if method $== "IV";    
+            zz = z;
+        endif; 
+    endif;
+    sigma2_est = sumc((y - xx * b_est).^2) / (N - cols(xx));
+    if 		method $== "OLS";
+        b_CV = sigma2_est * invpd(xx'xx);
+    elseif 	method $== "IV";
+        x_dach = zz*invpd(zz'zz)*zz'xx;
+        b_CV = sigma2_est * invpd(x_dach'x_dach);
+    else;
+        "Unknown estimation method. Programme terminated.";
+        end;
+    endif;
+    b_SE = sqrt(diag(b_CV));
+    //Bootstrap standard errors
+	b = zeros(r,cols(x)+const);
+	for i(1,repl,1);		// loop over bootstraps			        
+        indi_i = rndi(N,1,1|N);   //draw random indices with replacement of size N
+		if 		method $== "OLS"; bb = my_ols_xy(y[indi_i,.],x[indi_i,.],const);
+		elseif 	method $== "IV";  bb = my_iv_xy( y[indi_i,.],x[indi_i,.],z[indi_i,.],const);	
+		endif;
+		b[i,.] = bb';
+	endfor;	
+	b_SE_boot = stdc(b); //take descriptive stat's from bootstrap distribution of estimator
+    retp(b_SE, b_SE_boot);
+endp;
+
+proc(0)=estim_output(dep_v,indep_v,inst_v,coef,SE,SE_boot,N,r,method,const);
+	local i,t;
+    if const;
+        indep_v = "const" | indep_v; 
+    endif;    
+	t = coef ./ SE;
+	"==============================================================================================";
+	"Estimation output of " $method;; " estimation.  Sample size: ";; format /rds 4,0; N;
+	" Bootstrap replications: ";; R;; "  Dependent variable: ";; format 8,8; $dep_v;
+    if method $== "IV";
+        "Name of instruments: ";;  $inst_v;
+    endif;    
+	"----------------------------------------------------------------------------------------------";
+	"Variable    Coefficient    Std.Error    Std.E.Boot   t - value";
+	for i(1,rows(indep_v),1);
+		format 8,8; $indep_v[i];; format 12,3; coef[i];; SE[i];;  SE_boot[i];; t[i];	
+	endfor;	
+	"----------------------------------------------------------------------------------------------";
+endp;
+
+proc(0)=show_time_diff(ti1_a,ti1_e,text1,ti2_a,ti2_e,text2);	
+    "----------------------------------------------------------------------------------------------";
+	"Time needed for ";; text1;; ": ";;format 8,3; etstr_neu(ethsec(ti1_a,ti1_e));
+	"Time needed for ";; text2;; ": ";;format 8,3; etstr_neu(ethsec(ti2_a,ti2_e));
+	"Time difference 2 - 1:       ";;  format 8,3; etstr_neu(ethsec(ti2_a,ti2_e)-ethsec(ti1_a,ti1_e));
+    "----------------------------------------------------------------------------------------------";
+endp;
+proc(0)=etstr_neu(hhsec);
+    if hhsec < 1;
+        format 8,5; hhsec/100;;" seconds";
+    else;   
+        etstr(hhsec);
+    endif;    
+endp;    
+
+proc(0)=programmdauer(starttime);
+	local endtime,hs;
+	endtime = date;
+	hs = ethsec(starttime, endtime); format 8,4;
+	"===============================================";
+	"Duration of programme was " etstr(hs);
+	"===============================================";
+endp;
+

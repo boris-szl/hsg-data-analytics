@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 
-
-
 def main():
 	# netiher using numpy or pandas
 	vector1 = []
@@ -23,7 +21,7 @@ def main():
 	x = int(x)
 	for j in range(n):
 		exp.append(x**j)
-	print(exp)
+		print(exp)
 	# compute polynomial
 	total = 0
 	count = 0
@@ -33,14 +31,29 @@ def main():
 		count += 1
 	print(polynomial)
 
-	# using numpy
-	vector2 = np.array(vector1)
-	exp2 = np.array(exp)
-	print(vector1)
-	print(exp2)
 
-	# vector vector2 cross exp2
-	np.cross(vector2,exp2)
+
+	# using numpy
+	# we actually dont need to invoke the np.array() method on the list
+	polynomial = np.cross(vector1, exp)
+	print(polynomial)
+	# np.array creates a one dimensional vector
+	# vector2 = np.array([vector1])
+	# exp2 = np.array([exp])
+	# print(exp2.ndim)
+	# print(vector2.ndim)
+
+	
+	
+	x = [1,2,3]
+	y = [2,4,2]
+	result = np.cross(x,y)
+	print(result)
+
+	# result = np.cross(vector2,exp2)
+	# result2 = np.cross(vector2,np.transpose(exp2))
+	# print(result)
+	# print(result2)
 
 
 if __name__ == "__main__":

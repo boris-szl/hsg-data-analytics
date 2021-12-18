@@ -1,0 +1,30 @@
+new;
+
+x = (1 ~ 1) | (2 ~ 3);
+x;
+
+x[1,1] = 4;
+
+x[1,.]; // Ausgabe aller Spaltenvektoren der ersten Zeile
+x[.,2]; // Ausgabe aller Zeilenvektoren der zweiten 
+
+
+x'; // Transposition der Matrix die Einträge x[2,1] und x[1,2] tauschen Platz
+
+y = x * x';
+y;
+
+z = x .* x';
+z;
+
+// defining a procedure
+z2 = multiply_dot(x,x');
+z2;
+
+
+// procedure
+proc multiply_dot(a,b);
+    local c;
+    c = a .* b;
+    retp(c);
+endp;

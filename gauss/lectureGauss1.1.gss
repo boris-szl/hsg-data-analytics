@@ -1,0 +1,29 @@
+// My first Gauss programme
+
+string1_a = "I am ";
+string1_b = "You are ";
+
+string2_a = "a very good ";
+string2_b = "a very bad ";
+
+string3_a = "student. ";
+string3_b = "professor. ";
+
+string4_a = "This is true. ";
+string4_b = "This is false. ";
+
+a = rndn(1,1);
+b = rndn(1,1);
+c = rndn(1,1);
+
+abc = a + b + c;
+
+if a > 0;  s = string1_a;  		else;  s = string1_b; endif;
+if b > 0;  s = s $+ string2_a;  else;  s = s $+ string2_b; endif;
+if c > 0;  s = s $+ string3_a;  else;  s = s $+ string3_b; endif;	
+	
+if abc > 0;  s = s $+ string4_a;  else;  s = s $+ string4_b; endif;	
+	
+$s;
+	
+end;	

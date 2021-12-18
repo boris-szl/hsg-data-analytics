@@ -1,0 +1,59 @@
+new; cls; starttime = date;
+
+
+outputfile = "test.out";
+
+
+// (1) Define parameters
+// Start with the ones you frequently change
+N = 20000; // sample size (size of observation) 
+R = 1000; // bootsstrap replications (iterative drawing of the sample size)
+
+// Specify parameters for Data Generative Process
+
+// Coeff
+true_beta = ones(4,1); // arbitrary values (set any values you like)
+// alternative to zeros(4,1)), rndi(4,1 range_start | range_end)
+true_delta = -0.5;
+
+// Varriance of the unobservablel
+sigma_u = 1;
+sigma_mu = 1;
+
+// Covariates (independent variables)
+dummy_p = 0.8; // probability of the dummy variable
+mean_x = ones(2,1); // means of normally distributed covariates
+sigma2_x = eye(2); // true variance covariance matrix of normally distributed covariates
+sigma2_x[2,1] = 0.5;
+sigma2_x[1,2] = 0.5;
+sigma2_x;
+
+output file =^outputfile reset; //overwrites old output file of same name
+
+"===============================================================";
+"                      OLS and IV estimation                    ";
+"===============================================================";
+
+// generate artificial data (DGP1 & 2)
+
+{y,x123,x4,y_name,x_name,z_name} = dgp_xy(N, true_delta,dummy_p,sigma2_u,sigma2_mu,mean_x,sigma2_x); // generate the data
+
+// OLS Estimation with matrices
+ols_start = date; 
+b_ols = my_ols_xy(y,x123,1)M; // OLS estimator using matrices
+ols_end = date;
+
+// OLS Estimation with loop
+ols_slow_start = date;
+B_slow = my_slow_ols_xy(y,x123,1); // only for demonstration purposes
+ols_slow_end = date;
+
+
+// procedures
+
+proc(6) = dgp_xy(N,b,delta,dummy_p,sigma2_u,sigma2_mu,mean_x,sigma2_x);
+    local y,x,x4,u,mu,x_name,z_name;
+    x = rndBernoulli(N,1,dummy_p) ~rndMVn(N,mean_x,sigma2_x);
+    u = rnd(N,1) * sqrt(sigma2_u)
+
+
