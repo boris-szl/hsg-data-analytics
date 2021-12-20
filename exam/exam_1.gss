@@ -1,5 +1,6 @@
 new;
 cls;
+format /rd 16,4;
 
 // TASK 1
 // we assign string name of the file to a variable
@@ -12,12 +13,15 @@ fh = dataopen(file,"read");
 // get number of columns and rows for filehandle
 ncol = colsf(fh);
 nrow = rowsf(fh);
-ncol;; nrow;
+ncol; nrow;
 
 // using loadd
 // we load data and assign the return value of the function load(...) to X
 // return value is a MxN matrix
 X = loadd(file);
+
+// For python .dat to .csv
+call saved(X,"DadesPAU.csv");
 
 // we define a variable headers and assign the column names of the dataset
 headers = getHeaders(file);
@@ -78,11 +82,10 @@ print "Median of IQ using alternative proc" ud_median_3(dat_IQ);
 print "Median of IQ using alternative proc" ud_median_with_percentiles(dat_IQ);
 
 
-
-
 fmod(50,2);
 
 // the right one
+// this works
 proc(1) =  ud_median(column);
     local length, mdian, c;
     c = sortc(column);
@@ -124,7 +127,6 @@ proc(1) = ud_median_with_percentiles(column);
     retp(mdian);
 endp;
     
-end;
 // testing and comparions with output above
 
 
@@ -148,11 +150,28 @@ call ols(file, formula);
 
 // TASK 4
 // point estimator
+// sort the data
+// sort endog, exog variables
+sorted_grade = dat_Grade;
+y_endog = sorted_grade;
 
-// For python .dat to .csv
-call saved(X, "DadesPAU.csv");
+sorted_iq = dat_IQ;
+sorted_hs = dat_HStudied;
+sorted_qual = dat_QualityHS;
+
+X[1:3,.];
+
+X=loadd(file, "IQ+HStudied+QualityHS");
+Y=loadd(file, "Grade");
+
+first_comp = X'X;
+inv(X'X)*X'Y;
+
+beta_coeff =inv(X'X)*X'Y;
+beta_coeff;
 
 
+closeall fh;
 
 end;
 

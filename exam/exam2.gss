@@ -36,7 +36,7 @@ proc(1) = delta(column_data);
     local delta, c, len;
     c = column_data;
     len = rows(c);
-    delta = ( c[len]/c[1] ) - 1 ;
+    delta = ( c[len]/c[1] ) - 1;
     retp(delta);
 endp;
 
@@ -44,13 +44,37 @@ endp;
 format /rd 4,4;
 print "Wage from 1992 to 1993 has risen by % " delta(dat_wage)*100;
 
+format /rd 16,4;
+wages_new_jersey = loadd(file);
+wages_new_jersey = wages_new_jersey[., "State" "Wage"];
+wages_new_jersey = selif(wages_new_jersey, wages_new_jersey[., "State"] .== 1);
+wages_new_jersey = wages_new_jersey[.,"Wage"];
+print "Wage from 1992 to 1993 has risen by % " delta(wages_new_jersey)*100;
+
 // TASK 3
+
+mean_new_jersey = meanc(wages_new_jersey);
+
+// mean and standard deviation for pennsylvania
+wages_penn = loadd(file);
+wages_penn = wages_penn[., "State" "Wage"];
+wages_penn = selif(wages_penn, wages_penn[., "State"] .== 0);
+wages_penn = wages_penn[.,"Wage"];
+wages_penn[1:3,.];
 
 // get first entry
 // get last entry
 
+// Task 4
+// DiD Estimator
 
 
+// Task 4 OLS
+formula = "FTE ~ State + Year + Year*State";
+call ols(file,formula );
 
+plotScatter(file,);
+
+closeall;
 
 end;

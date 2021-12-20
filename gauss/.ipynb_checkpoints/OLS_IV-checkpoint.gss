@@ -6,7 +6,7 @@ The following features are added to the previous programme (OLS_IV.nodatfile.gss
 @
 new; rndseed 12398764; cls; starttime = date;	// programme initialized
 
-path_for_all = "./";
+path_for_all = "Q:/SEW/Lechner/Veranstaltungen/HS20/Python and Gauss/Gauss/data/";
 
 outputfile = "OLS_IV.out";	            // define output file to be used below
 datafile   = "OLS_IV_data.dat";         // file used to contain data
