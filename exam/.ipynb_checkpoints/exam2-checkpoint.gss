@@ -114,7 +114,7 @@ proc(1) = sigma(data);
     retp(std_dev);
 endp;
 
-
+end;
 // get first entry
 // get last entry
 
