@@ -1,0 +1,75 @@
+new;
+cls;
+rndseed 1234;
+
+// Load data
+file = "michelson.dat";
+fh = dataopen(file, "read");
+X = loadd(file);
+
+X_names = getHeaders(file);
+X_names;
+
+// Task 1
+nrows = rows(X);
+nrows;
+
+dstatmt(X);
+// Looking at the output of dstatmt(x) we can conclude that there are max. 5 with 20 run experiments which equal to 100 observations
+print "_______________________________________________________________________________\n";
+
+// Task 2
+// indexing/slicing data
+sub_sample_e1 = X;
+sub_sample_e1 = selif(sub_sample_e1, sub_sample_e1[., "Expt"] .== 1);
+sub_sample_e1 = sub_sample_e1[.,"Speed"];
+speed_e1 = sub_sample_e1[.,"Speed"];
+
+sub_sample_e5 = X;
+sub_sample_e5 = selif(sub_sample_e5, sub_sample_e5[., "Expt"] .== 5);
+sub_sample_e5_ = sub_sample_e5[.,"Speed"];
+speed_e5 = sub_sample_e5[.,"Speed"];
+
+// procedure for variance
+proc(1) = variance(data);
+    local mu, sigma_2, size_n;
+    mu = meanc(data);
+    size_n = rows(data);
+    sigma_2 = 0;
+    for i (1, rows(data), 1);
+        sigma_2 = sigma_2 + ((data[i] - mu)^2);
+    endfor;
+    retp(sigma_2/size_n);
+endp;
+
+print "Variance for Speed in Expt 1 is " variance(speed_e1);
+print "Variance for Speed in Expt 5 is " variance(speed_e5);
+
+
+// Task 3
+print "_______________________________________________________________________________\n";
+sigma_2 = 7500;
+mu1 = meanc(speed_e1);
+mu2 = meanc(speed_e5);
+size_e1_e2 = 20;
+t = ( sqrt(size_e1_e2) * (mu1 - mu2) ) / sqrt(sigma_2 + sigma_2);
+t2 = ( sqrt(size_e1_e2) * (mu1 - mu2) ) / sqrt(variance(speed_e1) + variance(speed_e5));
+print "t test for both sub samples, where s1 = s2 = 7500 :" t;
+print "t test for both sub samples, where s1 != s2 using results from procedure: " t2;
+print "Since abs(t) > 2.05, for both approaches, it follows means are different";
+
+print "_______________________________________________________________________________\n";
+// Task 4
+
+file2 = "michelson_binary.dat";
+
+print "_______________________________________________________________________________\n";
+
+// Task 5
+// OLS
+file2 = "michelson_binary.dat";
+formula = "Speed ~ -1 + Run";
+call ols(file2,formula);
+
+closeall;
+end;
